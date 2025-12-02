@@ -1,81 +1,279 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <title>Mini Cloudinary</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-    }
-    .preview img {
-      max-width: 300px;
-      margin-top: 20px;
-      display: block;
-    }
-    .url-box {
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      font-family: monospace;
-      word-break: break-all;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Cloudinary - Image Uploader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50; /* Hijau */
+            --secondary-color: #388E3C; /* Hijau gelap */
+            --background-light: #f4f7f6;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --error-color: #f44336;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 i {
+            margin-right: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        /* --- Form Styling --- */
+        #uploadForm {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 30px;
+            border: 2px dashed var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            justify-content: space-between;
+        }
+        
+        input[type="file"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        button[type="submit"] {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+            display: flex;
+            align-items: center;
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98);
+        }
+
+        button[type="submit"] i {
+            margin-right: 8px;
+        }
+
+        /* --- Result Styling --- */
+        #result {
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .upload-status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-success {
+            background-color: #e8f5e9; /* Light Green */
+            color: var(--secondary-color);
+        }
+
+        .status-error {
+            background-color: #ffebee; /* Light Red */
+            color: var(--error-color);
+        }
+
+        .status-uploading {
+            background-color: #fffde7; /* Light Yellow */
+            color: #fbc02d;
+        }
+
+        .preview {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .preview img {
+            max-width: 100%;
+            height: auto;
+            max-height: 300px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            object-fit: contain; /* Memastikan gambar tidak terpotong */
+        }
+        
+        .url-label {
+            font-weight: 600;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            display: block;
+            color: var(--text-color);
+        }
+
+        .url-box {
+            padding: 12px;
+            border: 1px solid var(--primary-color);
+            background-color: #f0fff0; /* Sangat terang hijau */
+            font-family: monospace;
+            word-break: break-all;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: copy; /* Indikasi bisa dicopy */
+            transition: background-color 0.2s ease;
+        }
+
+        .url-box:hover {
+            background-color: #e6ffe6;
+        }
+        
+        /* Loading Spinner Basic */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+    </style>
 </head>
 <body>
-  <h1>Mini Cloudinary</h1>
-  <p>Upload gambar → dapet URL asset dengan nama random.</p>
+    <div class="container">
+        <h1><i class="fas fa-cloud-upload-alt"></i> Mini Cloudinary</h1>
+        <p class="subtitle">Upload gambar → dapet URL asset siap pakai dengan nama unik.</p>
 
-  <form id="uploadForm">
-    <input type="file" name="image" accept="image/*" required />
-    <button type="submit">Upload</button>
-  </form>
+        <form id="uploadForm">
+            <input type="file" name="image" accept="image/*" required />
+            <button type="submit">
+                <i class="fas fa-upload"></i> Upload
+            </button>
+        </form>
 
-  <div id="result"></div>
+        <div id="result"></div>
+    </div>
 
     <script>
     const form = document.getElementById('uploadForm');
     const resultDiv = document.getElementById('result');
+    const submitButton = form.querySelector('button[type="submit"]');
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const fileInput = form.querySelector('input[type="file"]');
-        if (!fileInput.files[0]) return;
-
-        const formData = new FormData();
-        formData.append('image', fileInput.files[0]);
-
-        resultDiv.innerHTML = 'Uploading...';
-
-        try {
-        const res = await fetch('/upload', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-            resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error || 'Unknown error'}</p>`;
+        const file = fileInput.files[0];
+        if (!file) {
+            resultDiv.innerHTML = `<p class="upload-status status-error"><i class="fas fa-exclamation-triangle"></i> Pilih file gambar dulu!</p>`;
             return;
         }
 
-        // SEKARANG data.url sudah FULL URL Bunny CDN
-        const fullUrl = data.url;
+        const formData = new FormData();
+        formData.append('image', file);
 
-        resultDiv.innerHTML = `
-            <p>Upload sukses!</p>
-            <div class="preview">
-            <img src="${fullUrl}" alt="Uploaded image" />
-            </div>
-            <p>Direct URL:</p>
-            <div class="url-box">${fullUrl}</div>
-        `;
+        // Update UI untuk loading
+        resultDiv.innerHTML = `<p class="upload-status status-uploading"><i class="fas fa-spinner fa-spin"></i> Sedang mengunggah...</p>`;
+        submitButton.disabled = true;
+        submitButton.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Proses...`;
+
+        try {
+            const res = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                resultDiv.innerHTML = `
+                    <p class="upload-status status-error">
+                        <i class="fas fa-times-circle"></i> Error: ${data.error || 'Terjadi kesalahan tidak diketahui.'}
+                    </p>`;
+                return;
+            }
+
+            // data.url sudah FULL URL Bunny CDN
+            const fullUrl = data.url;
+
+            resultDiv.innerHTML = `
+                <p class="upload-status status-success">
+                    <i class="fas fa-check-circle"></i> Upload sukses!
+                </p>
+                <div class="preview">
+                    <img src="${fullUrl}" alt="Uploaded image" />
+                </div>
+                <label class="url-label" for="fullUrlBox">Direct URL (Klik untuk menyalin):</label>
+                <div class="url-box" id="fullUrlBox" onclick="copyToClipboard('${fullUrl}')">${fullUrl}</div>
+            `;
         } catch (err) {
-        console.error(err);
-        resultDiv.innerHTML = `<p style="color:red;">Terjadi error.</p>`;
+            console.error(err);
+            resultDiv.innerHTML = `<p class="upload-status status-error"><i class="fas fa-times-circle"></i> Terjadi error koneksi atau server.</p>`;
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `<i class="fas fa-upload"></i> Upload`;
         }
     });
+
+    // Fungsi tambahan untuk menyalin URL
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('URL berhasil disalin!');
+        }, (err) => {
+            console.error('Gagal menyalin: ', err);
+        });
+    }
     </script>
 
 </body>
