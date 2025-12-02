@@ -2,6 +2,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
@@ -12,17 +13,20 @@ const app = express();
 const PORT = 3000;
 
 // === Bunny config dari .env ===
-// Contoh .env:
 // BUNNY_STORAGE_HOST=storage.bunnycdn.com
 // BUNNY_STORAGE_ZONE_NAME=mini-cloudinary
 // BUNNY_STORAGE_API_KEY=PASSWORD_STORAGE_KAMU
-// BUNNY_CDN_BASE_URL=https://mini-cloudinary-cdn.b-cdn.net
+// BUNNY_CDN_BASE_URL=https://mini-cloudinary.b-cdn.net
 const BUNNY_STORAGE_HOST = process.env.BUNNY_STORAGE_HOST;            // biasanya: storage.bunnycdn.com
 const BUNNY_STORAGE_ZONE_NAME = process.env.BUNNY_STORAGE_ZONE_NAME;  // nama storage zone kamu
 const BUNNY_STORAGE_API_KEY = process.env.BUNNY_STORAGE_API_KEY;      // storage password
 const BUNNY_CDN_BASE_URL = process.env.BUNNY_CDN_BASE_URL;            // host pull zone / cdn
 
 console.log('Bunny host:', BUNNY_STORAGE_HOST);
+
+// ==== Middleware global ====
+app.use(cors()); // izinkan akses dari mana saja (bisa dibatasi ke domain tertentu nanti)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ==== Multer: simpan sementara ke folder temp ====
 const tempDir = path.join(__dirname, 'temp_uploads');
@@ -53,14 +57,14 @@ function fileFilter(req, file, cb) {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB per file
+    files: 10                  // MAX 10 files per request (untuk bulk)
+  }
 });
 
-// ==== Serve static frontend (public/index.html) ====
-app.use(express.static(path.join(__dirname, 'public')));
-
 // ==== Helper: upload file ke Bunny Storage via HTTP PUT ====
-// Di sini kita pakai endpoint generik: https://storage.bunnycdn.com/{zoneName}/{fileName}
+// Endpoint: https://storage.bunnycdn.com/{zoneName}/{fileName}
 async function uploadToBunnyStorage(localFilePath, remoteFileName) {
   const url = `https://${BUNNY_STORAGE_HOST}/${BUNNY_STORAGE_ZONE_NAME}/${remoteFileName}`;
 
@@ -86,7 +90,7 @@ async function uploadToBunnyStorage(localFilePath, remoteFileName) {
   return cdnUrl;
 }
 
-// ==== Endpoint /upload ====
+// ==== Endpoint SINGLE /upload ====
 // 1) terima file pakai Multer (temp lokal)
 // 2) kirim ke Bunny Storage
 // 3) hapus file temp
@@ -110,7 +114,7 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     return res.json({
       message: 'Upload sukses!',
       fileName,
-      url: cdnUrl      // ⚠️ sekarang ini FULL URL CDN
+      url: cdnUrl // FULL URL CDN
     });
   } catch (err) {
     console.error(err);
@@ -119,15 +123,72 @@ app.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Error handler:', err);
-  if (err) {
-    return res.status(400).json({ error: err.message });
-  }
-  next();
+// ==== Endpoint BULK /upload-bulk (max 10 file) ====
+app.post('/upload-bulk', (req, res) => {
+  // gunakan upload.array → field name: "images"
+  upload.array('images', 10)(req, res, async (err) => {
+    if (err) {
+      console.error('Error Multer bulk:', err);
+      return res.status(400).json({ error: err.message });
+    }
+
+    const files = req.files || [];
+    if (!files.length) {
+      return res.status(400).json({ error: 'Tidak ada file yang diupload.' });
+    }
+
+    const results = [];
+
+    try {
+      // proses tiap file → upload ke Bunny
+      for (const file of files) {
+        const localPath = file.path;
+        const fileName = file.filename;
+
+        try {
+          const cdnUrl = await uploadToBunnyStorage(localPath, fileName);
+          results.push({
+            originalName: file.originalname,
+            fileName,
+            url: cdnUrl
+          });
+        } catch (e) {
+          console.error('Gagal upload satu file ke Bunny:', e.message);
+          results.push({
+            originalName: file.originalname,
+            fileName,
+            url: null,
+            error: 'Gagal upload ke Bunny'
+          });
+        } finally {
+          // hapus temp file apapun hasilnya
+          fs.unlink(localPath, (err) => {
+            if (err) console.error('Gagal hapus temp file:', err);
+          });
+        }
+      }
+
+      return res.json({
+        message: `Upload ${results.length} file selesai`,
+        files: results
+      });
+    } catch (e) {
+      console.error('Error umum bulk upload:', e);
+      return res.status(500).json({ error: 'Terjadi error saat bulk upload.' });
+    }
+  });
 });
 
+// ==== Error handler (paling akhir sebelum listen) ====
+app.use((err, req, res, next) => {
+  console.error('Error handler:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  return res.status(400).json({ error: err.message || 'Terjadi error.' });
+});
+
+// ==== Start server ====
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
 });
