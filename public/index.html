@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini Cloudinary</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+    }
+    .preview img {
+      max-width: 300px;
+      margin-top: 20px;
+      display: block;
+    }
+    .url-box {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      font-family: monospace;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mini Cloudinary</h1>
+  <p>Upload gambar → dapet URL asset dengan nama random.</p>
+
+  <form id="uploadForm">
+    <input type="file" name="image" accept="image/*" required />
+    <button type="submit">Upload</button>
+  </form>
+
+  <div id="result"></div>
+
+    <script>
+    const form = document.getElementById('uploadForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = form.querySelector('input[type="file"]');
+        if (!fileInput.files[0]) return;
+
+        const formData = new FormData();
+        formData.append('image', fileInput.files[0]);
+
+        resultDiv.innerHTML = 'Uploading...';
+
+        try {
+        const res = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error || 'Unknown error'}</p>`;
+            return;
+        }
+
+        // SEKARANG data.url sudah FULL URL Bunny CDN
+        const fullUrl = data.url;
+
+        resultDiv.innerHTML = `
+            <p>Upload sukses!</p>
+            <div class="preview">
+            <img src="${fullUrl}" alt="Uploaded image" />
+            </div>
+            <p>Direct URL:</p>
+            <div class="url-box">${fullUrl}</div>
+        `;
+        } catch (err) {
+        console.error(err);
+        resultDiv.innerHTML = `<p style="color:red;">Terjadi error.</p>`;
+        }
+    });
+    </script>
+
+</body>
+</html>
