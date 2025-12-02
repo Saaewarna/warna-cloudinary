@@ -46,20 +46,28 @@ const storage = multer.diskStorage({
 });
 
 function fileFilter(req, file, cb) {
-  const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  if (allowed.includes(file.mimetype)) {
+  const allowedImages = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const allowedVideos = [
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',    // .mov
+    'video/x-matroska'    // .mkv
+  ];
+
+  if (allowedImages.includes(file.mimetype) || allowedVideos.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('File harus berupa gambar (jpg, png, gif, webp).'), false);
+    cb(new Error('File harus berupa gambar (jpg, png, gif, webp) atau video (mp4, webm, ogg, mov, mkv).'), false);
   }
 }
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB per file
-    files: 10                  // MAX 10 files per request (untuk bulk)
+  limits: { 
+    fileSize: 50 * 1024 * 1024, // 50MB per file (boleh lo kecilin / gedein)
+    files: 10                   // MAX 10 files per request
   }
 });
 
@@ -147,19 +155,20 @@ app.post('/upload-bulk', (req, res) => {
 
         try {
           const cdnUrl = await uploadToBunnyStorage(localPath, fileName);
-          results.push({
-            originalName: file.originalname,
-            fileName,
-            url: cdnUrl
-          });
+        results.push({
+        originalName: file.originalname,
+        fileName,
+        url: cdnUrl,
+        mimeType: file.mimetype
+        });
         } catch (e) {
           console.error('Gagal upload satu file ke Bunny:', e.message);
-          results.push({
+            results.push({
             originalName: file.originalname,
             fileName,
             url: null,
             error: 'Gagal upload ke Bunny'
-          });
+            });
         } finally {
           // hapus temp file apapun hasilnya
           fs.unlink(localPath, (err) => {
