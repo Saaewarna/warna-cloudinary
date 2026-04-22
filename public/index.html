@@ -4,372 +4,1031 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Warna Cloudinary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
         :root {
-            --primary: #4CAF50; --primary-dark: #388E3C;
-            --bg: #f4f7f6; --card: #ffffff;
-            --text: #333; --muted: #666; --border: #eee;
-            --folder-color: #FFC107;
+            --primary: #10b981;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
         }
-        body.dark-mode {
-            --bg: #1a1a1a; --card: #2d2d2d;
-            --text: #e0e0e0; --muted: #aaa; --border: #444;
+
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
         }
-        body { font-family: 'Calibri', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
-        .container { max-width: 900px; width: 100%; background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 16px;
+            position: relative;
+        }
+
         .hidden { display: none !important; }
-        
-        /* UI Components */
-        .btn { padding: 10px 18px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn:hover { background: var(--primary-dark); }
-        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); cursor: pointer; border-radius: 6px; padding: 8px 15px; font-weight: bold; }
-        
-        input[type="text"], input[type="password"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); box-sizing: border-box;}
-        
-        .auth-card { max-width: 400px; margin: 40px auto; text-align: center; }
-        .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); }
-        .drop-zone { border: 2px dashed #ccc; border-radius: 10px; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; }
-        .drop-zone:hover { border-color: var(--primary); opacity: 0.8; }
 
-        /* OPTION TOGGLE */
-        .upload-options { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-weight: bold; }
-        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(26px); }
-
-        /* BREADCRUMB & TOOLBAR */
-        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .breadcrumb { font-size: 1.1em; font-weight: bold; display: flex; align-items: center; gap: 8px; flex-grow: 1; }
-        .breadcrumb span { cursor: pointer; }
-        .breadcrumb span:hover { color: var(--primary); text-decoration: underline; }
-        .active-folder { color: var(--muted); cursor: default !important; text-decoration: none !important; }
-        
-        .toolbar-actions { display:flex; gap:10px; align-items: center; }
-        #searchInput { margin: 0; padding: 8px 12px; width: 200px; font-size: 0.9em; }
-
-        /* GRID SYSTEM */
-        .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-        
-        /* FOLDER CARD */
-        .folder-card { 
-            background: var(--card); border: 1px solid var(--border); border-radius: 8px; 
-            padding: 15px; text-align: center; cursor: pointer; transition: 0.2s;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            height: 140px; position: relative;
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
         }
-        .folder-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: var(--primary); }
-        .folder-icon { font-size: 3.5em; color: var(--folder-color); margin-bottom: 10px; }
-        .folder-name { font-weight: bold; font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-        .folder-delete { position: absolute; top: 5px; right: 5px; color: #f44336; opacity: 0; transition: 0.2s; padding: 5px; }
-        .folder-card:hover .folder-delete { opacity: 1; }
 
-        /* ASSET CARD */
-        .asset-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); position: relative; height: 170px;}
-        .asset-card img, .asset-card video { width: 100%; height: 120px; object-fit: cover; display: block; }
-        .asset-info { padding: 8px; font-size: 0.85em; color: var(--muted); border-top: 1px solid var(--border); }
-        .action-overlay { position: absolute; top: 5px; right: 5px; display: flex; gap: 5px; opacity: 0; transition: 0.2s; }
-        .asset-card:hover .action-overlay { opacity: 1; }
-        .icon-btn { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
-        /* THEME TOGGLE */
-        .theme-toggle { position: absolute; top: 20px; left: 20px; cursor: pointer; font-size: 1.5rem; }
+        .btn, .btn-outline {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.1s;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-outline:hover, .btn-outline.active {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 8px;
+        }
+
+        /* --- DROPZONE & UPLOAD --- */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            transition: 0.2s;
+        }
+
+        .drop-zone:hover { border-color: var(--primary); }
+
+        .progress-container {
+            width: 100%;
+            background: var(--bg);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.2s;
+        }
+
+        .progress-bar.indeterminate {
+            width: 100%;
+            animation: loading 1s infinite linear;
+            background: linear-gradient(90deg, var(--bg) 0%, var(--primary) 50%, var(--bg) 100%);
+        }
+
+        @keyframes loading {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+
+        .upload-options {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-container {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 4px;
+            display: flex;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-option {
+            width: 130px;
+            padding: 8px 0;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: 600;
+            z-index: 2;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+
+        .toggle-active-bg {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 130px;
+            height: calc(100% - 8px);
+            background: var(--primary);
+            border-radius: 50px;
+            transition: transform 0.2s;
+            z-index: 1;
+        }
+
+        .bg-right { transform: translateX(130px); }
+        .opt-active { color: white !important; }
+
+        /* --- GRID & CARDS --- */
+        .asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.1s;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+
+        .card.selected { border: 2px solid var(--primary); }
+
+        .folder-card {
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .folder-icon {
+            font-size: 2.5rem;
+            color: #f59e0b;
+            margin-bottom: 8px;
+        }
+
+        .folder-del {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: var(--danger);
+            opacity: 0;
+            padding: 5px;
+        }
+
+        .folder-card:hover .folder-del { opacity: 1; }
+
+        .asset-card { height: 160px; }
+
+        .media-wrap {
+            height: 110px;
+            width: 100%;
+            position: relative;
+            background: #000;
+        }
+
+        .media-wrap img, .media-wrap video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .info-wrap {
+            padding: 8px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        .file-name {
+            font-size: 0.8em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        .file-meta {
+            font-size: 0.7em;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2px;
+        }
+
+        /* --- SELECT MODE --- */
+        .select-check {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .card.selected .select-check, 
+        .select-mode .select-check {
+            display: flex;
+        }
+
+        .card.selected .select-check {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* --- OVERLAY ACTIONS --- */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: 0.1s;
+        }
+
+        .select-mode .overlay { display: none !important; }
+        .card:hover .overlay { opacity: 1; }
+
+        .icon-btn {
+            width: 30px;
+            height: 30px;
+            background: white;
+            color: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .icon-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* --- BULK ACTION BAR --- */
+        .bulk-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transition: transform 0.3s;
+            z-index: 100;
+        }
+
+        .bulk-bar.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* --- MODALS --- */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: var(--surface);
+            width: 400px;
+            max-width: 90%;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .item-opt {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item-opt:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--primary);
+        }
+
+        /* --- LIGHTBOX --- */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .lightbox img, .lightbox video {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></div>
+<div id="auth" class="container" style="max-width: 400px; text-align: center; margin-top: 50px;">
+    <h2 style="color: var(--primary)">Login</h2>
+    <form id="loginForm">
+        <input type="text" id="usernameInput" placeholder="Username" required>
+        <input type="password" id="passwordInput" placeholder="Password" required>
+        <button class="btn" style="width: 100%">Masuk</button>
+    </form>
+</div>
 
-    <div id="authSection" class="container auth-card">
-        <h1 style="color:var(--primary);">Warna Cloudinary</h1>
-        <h3 style="color:var(--muted); margin-bottom:20px;">Jika belum ada akun, konfirmasi admin.</h3>
-        <form id="loginForm">
-            <input type="text" id="loginUser" placeholder="Username" required />
-            <input type="password" id="loginPass" placeholder="Password" required />
-            <button type="submit" class="btn" style="width:100%;">Masuk</button>
-        </form>
+<div id="dash" class="container hidden">
+    <div class="dash-header">
+        <div>
+            <h2 style="margin: 0;">Dashboard</h2>
+            <span id="welcomeUser" style="color: var(--primary); font-size: 0.9em; border: 1px solid var(--primary); padding: 2px 8px; border-radius: 12px;"></span>
+        </div>
+        <button onclick="logout()" class="btn-outline">Logout</button>
     </div>
 
-    <div id="dashboardSection" class="container hidden">
-        <div class="dash-header">
-            <h2><i class="fas fa-cloud"></i> Dashboard</h2>
-            <button onclick="logout()" class="btn-outline">Logout</button>
+    <div class="drop-zone" id="dropZone">
+        <i class="fas fa-cloud-upload-alt" style="font-size: 2em; color: var(--text-muted)"></i>
+        <div style="margin-top: 10px;">Drag & Drop / Paste (CTRL+V)</div>
+        <input type="file" id="fileInput" multiple style="display: none;" accept="image/*,video/*">
+    </div>
+    
+    <div class="progress-container" id="progressCont">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="upload-options">
+        <div class="toggle-container" onclick="toggleCompression()">
+            <div id="bgToggle" class="toggle-active-bg bg-right"></div>
+            <div id="optOriginal" class="toggle-option">Original</div>
+            <div id="optCompress" class="toggle-option opt-active">Auto Compress</div>
         </div>
-
-        <div class="drop-zone" id="dropZone">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <div style="margin-top:10px;">Drag & Drop, Klik, atau <strong>CTRL+V</strong> di sini</div>
-            <input type="file" id="fileInput" name="images" accept="image/*,video/*" multiple style="display:none;" />
-        </div>
-
-        <div class="upload-options">
-            <span>Original Quality</span>
-            <label class="switch">
-                <input type="checkbox" id="compressToggle" checked>
-                <span class="slider"></span>
-            </label>
-            <span style="color:var(--primary);">Compress & Optimize</span>
-        </div>
-
-        <div id="bulkStatus" style="text-align:center; margin-bottom:20px; color:var(--primary); font-weight:bold;"></div>
-
-        <div class="toolbar">
-            <div class="breadcrumb" id="breadcrumb"></div>
-            <div class="toolbar-actions">
-                <input type="text" id="searchInput" placeholder="Cari..." />
-                <button onclick="createFolder()" class="btn-outline" title="Buat Folder"><i class="fas fa-folder-plus"></i></button>
-                <button onclick="refreshData()" class="btn-outline" title="Refresh"><i class="fas fa-sync"></i></button>
-            </div>
-        </div>
-
-        <div id="contentGrid" class="asset-grid"></div>
+        <input type="checkbox" id="compressCheckbox" checked style="display: none;">
     </div>
 
-    <script>
-        let API_KEY = localStorage.getItem('mini_key');
-        let CURRENT_FOLDER = null; 
-        let CURRENT_FOLDER_NAME = 'Home';
+    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+        <div id="breadcrumb" style="font-weight: 600; color: var(--text-muted); align-self: center;"></div>
+        
+        <div style="display: flex; gap: 5px;">
+            <input type="text" id="searchInput" placeholder="Cari file..." style="margin: 0; width: 150px;">
+            <button id="selectBtn" onclick="toggleSelectMode()" class="btn-outline" title="Pilih Banyak File"><i class="fas fa-check-square"></i></button>
+            <button onclick="createFolder()" class="btn-outline" title="Buat Folder"><i class="fas fa-folder-plus"></i></button>
+            <button onclick="refreshData()" class="btn-outline" title="Refresh Halaman"><i class="fas fa-sync"></i></button>
+        </div>
+    </div>
 
-        // --- THEME ---
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    <div id="assetGrid" class="asset-grid"></div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <button id="loadMoreBtn" class="btn-outline hidden" onclick="loadMoreData()">Load More</button>
+    </div>
+</div>
+
+<div class="bulk-bar" id="bulkBar">
+    <span style="font-weight: 600;"><span id="selectCount">0</span> Selected</span>
+    <button onclick="openMoveModal()" class="btn">Pindah</button>
+    <button onclick="bulkDelete()" class="btn" style="background: var(--danger);">Hapus</button>
+    <button onclick="cancelSelection()" class="btn-outline" style="border: none; color: white;">&times;</button>
+</div>
+
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <div class="lightbox-close" onclick="closeLightbox()">&times;</div>
+    <div id="lightboxContent"></div>
+</div>
+
+<div id="moveModal" class="modal" onclick="if(event.target.id === 'moveModal') this.classList.remove('active')">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>Pindahkan ke...</span>
+            <span onclick="document.getElementById('moveModal').classList.remove('active')" style="cursor: pointer;">&times;</span>
+        </div>
+        <div id="folderList" style="height: 300px; overflow-y: auto;"></div>
+    </div>
+</div>
+
+<div id="copyModal" class="modal" onclick="if(event.target.id === 'copyModal') this.classList.remove('active')">
+    <div class="modal-box" style="width: 350px;">
+        <div class="modal-header">
+            <span>Pilih URL</span>
+            <span onclick="document.getElementById('copyModal').classList.remove('active')" style="cursor: pointer;">&times;</span>
+        </div>
+        <div class="item-opt" onclick="executeCopy('original')">
+            <div><i class="fas fa-globe"></i> Original (CDN)</div>
+        </div>
+        <div class="item-opt" onclick="executeCopy('short')">
+            <div><i class="fas fa-bolt"></i> Short Link (VPS)</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Variables Configuration
+    let API_KEY = localStorage.getItem('mk');
+    let USERNAME = localStorage.getItem('mu');
+    let CURRENT_FOLDER = null;
+    let CURRENT_PAGE = 1;
+    let IS_SELECT_MODE = false;
+    let SELECTED_IDS = new Set();
+    let SEARCH_TIMER = null;
+    let TEMP_COPY_DATA = {};
+
+    // ==========================================
+    // UTILITY FUNCTIONS
+    // ==========================================
+    function formatSize(bytes) {
+        if (!bytes || isNaN(bytes)) return '';
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+    }
+
+    function toggleCompression() {
+        const checkbox = document.getElementById('compressCheckbox');
+        checkbox.checked = !checkbox.checked;
+        document.getElementById('bgToggle').classList.toggle('bg-right', checkbox.checked);
+        document.getElementById('optOriginal').classList.toggle('opt-active', !checkbox.checked);
+        document.getElementById('optCompress').classList.toggle('opt-active', checkbox.checked);
+    }
+
+    // ==========================================
+    // SELECTION & BULK ACTIONS
+    // ==========================================
+    function toggleSelectMode() {
+        IS_SELECT_MODE = !IS_SELECT_MODE;
+        document.getElementById('selectBtn').classList.toggle('active', IS_SELECT_MODE);
+        document.getElementById('assetGrid').classList.toggle('select-mode', IS_SELECT_MODE);
+        if (!IS_SELECT_MODE) cancelSelection();
+    }
+
+    function toggleItemSelection(id, element) {
+        if (SELECTED_IDS.has(id)) {
+            SELECTED_IDS.delete(id);
+            element.classList.remove('selected');
+        } else {
+            SELECTED_IDS.add(id);
+            element.classList.add('selected');
         }
-        if(localStorage.getItem('theme') === 'dark') toggleTheme();
+        updateBulkBar();
+    }
 
-        // --- AUTH ---
-        function checkLogin() {
-            if (API_KEY) {
-                document.getElementById('authSection').classList.add('hidden');
-                document.getElementById('dashboardSection').classList.remove('hidden');
-                refreshData();
+    function updateBulkBar() {
+        document.getElementById('selectCount').innerText = SELECTED_IDS.size;
+        document.getElementById('bulkBar').classList.toggle('active', SELECTED_IDS.size > 0);
+    }
+
+    function cancelSelection() {
+        SELECTED_IDS.clear();
+        document.querySelectorAll('.card.selected').forEach(card => card.classList.remove('selected'));
+        updateBulkBar();
+    }
+
+    async function bulkDelete() {
+        if (!confirm(`Yakin ingin menghapus ${SELECTED_IDS.size} file ini?`)) return;
+        
+        await fetch('/api/assets/bulk-delete', {
+            method: 'POST',
+            headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: [...SELECTED_IDS] })
+        });
+        
+        cancelSelection();
+        refreshData();
+    }
+
+    async function openMoveModal() {
+        document.getElementById('moveModal').classList.add('active');
+        const folderListEl = document.getElementById('folderList');
+        folderListEl.innerHTML = 'Loading...';
+        
+        try {
+            const res = await fetch('/api/folders/list', { headers: { 'x-api-key': API_KEY } });
+            const folders = await res.json();
+            
+            let html = `<div class="item-opt" onclick="submitMove(null)"><i class="fas fa-home"></i> Home (Root)</div>`;
+            folders.forEach(f => {
+                if (f.id !== CURRENT_FOLDER) {
+                    html += `<div class="item-opt" onclick="submitMove(${f.id})"><i class="fas fa-folder"></i> ${f.name}</div>`;
+                }
+            });
+            folderListEl.innerHTML = html;
+        } catch (error) {
+            folderListEl.innerHTML = 'Gagal memuat daftar folder.';
+        }
+    }
+
+    async function submitMove(targetFolderId) {
+        await fetch('/api/assets/move', {
+            method: 'POST',
+            headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assetIds: [...SELECTED_IDS], targetFolderId: targetFolderId })
+        });
+        
+        document.getElementById('moveModal').classList.remove('active');
+        cancelSelection();
+        refreshData();
+    }
+
+    // ==========================================
+    // COPY URL LOGIC
+    // ==========================================
+    function openCopyModal(url, shortId, e) {
+        e.stopPropagation();
+        TEMP_COPY_DATA = { url: url, shortId: shortId };
+        document.getElementById('copyModal').classList.add('active');
+    }
+
+    function executeCopy(mode) {
+        const textToCopy = mode === 'original' 
+            ? TEMP_COPY_DATA.url 
+            : `${location.origin}/s/${TEMP_COPY_DATA.shortId}`;
+            
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            alert('URL Berhasil Disalin!');
+        } catch (err) {
+            prompt("Gagal auto-copy. Silakan copy manual:", textToCopy);
+        }
+        
+        document.body.removeChild(textArea);
+        document.getElementById('copyModal').classList.remove('active');
+    }
+
+    // ==========================================
+    // ASSET INTERACTION (LIGHTBOX)
+    // ==========================================
+    function handleCardClick(id, element) {
+        if (IS_SELECT_MODE) {
+            toggleItemSelection(id, element);
+        } else {
+            const mimeType = element.dataset.mime || '';
+            const url = element.dataset.url;
+            const contentContainer = document.getElementById('lightboxContent');
+            
+            if (mimeType.startsWith('video')) {
+                contentContainer.innerHTML = `<video src="${url}" controls autoplay></video>`;
+            } else {
+                contentContainer.innerHTML = `<img src="${url}">`;
+            }
+            
+            document.getElementById('lightbox').classList.add('active');
+        }
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('active');
+        setTimeout(() => {
+            document.getElementById('lightboxContent').innerHTML = '';
+        }, 300); // Tunggu animasi selesai baru clear
+    }
+
+    // ==========================================
+    // UPLOAD & PASTE LOGIC (SMART URL)
+    // ==========================================
+    window.addEventListener('paste', async (e) => {
+        // Cek jika sedang tidak login atau dashboard belum terbuka
+        if (!API_KEY || document.getElementById('dash').classList.contains('hidden')) return;
+
+        // Cek jika paste berupa HTML dari Browser (Copy Image)
+        const htmlData = e.clipboardData.getData('text/html');
+        if (htmlData) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlData, 'text/html');
+            const imgElement = doc.querySelector('img');
+            
+            if (imgElement && imgElement.src && imgElement.src.startsWith('http')) {
+                if (confirm("Download gambar asli dari URL ini?")) {
+                    uploadFromUrl(imgElement.src);
+                    return;
+                }
             }
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const u = document.getElementById('loginUser').value;
-            const p = document.getElementById('loginPass').value;
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ username: u, password: p })
-                });
-                const data = await res.json();
-                if(res.ok) {
-                    localStorage.setItem('mini_key', data.apiKey);
-                    API_KEY = data.apiKey;
-                    checkLogin();
-                } else alert(data.error);
-            } catch(e) { alert('Error connect'); }
-        });
-
-        window.logout = () => { localStorage.clear(); location.reload(); }
-
-        // --- SEARCH ---
-        document.getElementById('searchInput').addEventListener('keyup', (e) => {
-            const term = e.target.value.toLowerCase();
-            document.querySelectorAll('.folder-card').forEach(card => {
-                const name = card.querySelector('.folder-name').innerText.toLowerCase();
-                card.style.display = name.includes(term) ? 'flex' : 'none';
-            });
-            document.querySelectorAll('.asset-card').forEach(card => {
-                const name = card.querySelector('.asset-info div').innerText.toLowerCase();
-                card.style.display = name.includes(term) ? 'block' : 'none';
-            });
-        });
-
-        // --- DATA LOADING ---
-        async function refreshData() {
-            const grid = document.getElementById('contentGrid');
-            const searchInput = document.getElementById('searchInput');
-            searchInput.value = '';
-            grid.innerHTML = '<p>Loading...</p>';
-            let url = '/api/assets';
-            if(CURRENT_FOLDER) url += `?folderId=${CURRENT_FOLDER}`;
-
-            try {
-                const res = await fetch(url, { headers: { 'x-api-key': API_KEY } });
-                const data = await res.json();
-                renderBreadcrumb(data.currentFolder);
-                grid.innerHTML = '';
-
-                if(data.folders) {
-                    data.folders.forEach(f => {
-                        grid.innerHTML += `
-                            <div class="folder-card" onclick="openFolder(${f.id}, '${f.name}')">
-                                <div class="folder-delete" onclick="deleteFolder(${f.id}, event)" title="Hapus Folder"><i class="fas fa-times"></i></div>
-                                <i class="fas fa-folder folder-icon"></i>
-                                <div class="folder-name">${f.name}</div>
-                            </div>
-                        `;
-                    });
-                }
-
-                if(data.assets) {
-                    data.assets.forEach(a => {
-                        const isVid = a.mimeType.startsWith('video');
-                        const media = isVid ? `<video src="${a.url}"></video>` : `<img src="${a.url}" loading="lazy">`;
-                        grid.innerHTML += `
-                            <div class="asset-card">
-                                <div class="action-overlay">
-                                    <div class="icon-btn" onclick="renameAsset(${a.id}, '${a.fileName}')" style="color:blue"><i class="fas fa-pen"></i></div>
-                                    <div class="icon-btn" onclick="deleteAsset(${a.id})" style="color:red"><i class="fas fa-trash"></i></div>
-                                    <div class="icon-btn" onclick="copyUrl('${a.url}')" style="color:green"><i class="fas fa-link"></i></div>
-                                </div>
-                                ${media}
-                                <div class="asset-info">
-                                    <div style="font-weight:bold; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${a.fileName}</div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-                if(grid.innerHTML === '') grid.innerHTML = '<p style="color:#888; grid-column:1/-1; text-align:center;">Folder kosong.</p>';
-            } catch(e) { console.error(e); }
+        // Cek jika paste berupa File fisik (Screenshot/File dari folder)
+        const files = e.clipboardData.files;
+        if (files.length > 0) {
+            uploadFiles(files);
+            return;
         }
 
-        function renderBreadcrumb(folderObj) {
-            const bc = document.getElementById('breadcrumb');
-            if(!folderObj) {
-                CURRENT_FOLDER = null;
-                bc.innerHTML = `<span class="active-folder"><i class="fas fa-home"></i> Home</span>`;
+        // Cek jika paste berupa Teks URL biasa
+        const textData = e.clipboardData.getData('text');
+        if (textData && textData.trim().startsWith('http')) {
+            if (confirm("Download file dari URL ini?")) {
+                uploadFromUrl(textData.trim());
+            }
+        }
+    });
+
+    async function uploadFromUrl(url) {
+        const progressContainer = document.getElementById('progressCont');
+        const progressBar = document.getElementById('progressBar');
+        
+        progressContainer.style.display = 'block';
+        progressBar.className = 'progress-bar indeterminate';
+        
+        try {
+            const response = await fetch('/api/assets/fetch-url', {
+                method: 'POST',
+                headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    url: url, 
+                    folderId: CURRENT_FOLDER, 
+                    optimize: document.getElementById('compressCheckbox').checked 
+                })
+            });
+            
+            if (response.ok) {
+                refreshData();
             } else {
-                CURRENT_FOLDER = folderObj.id;
-                bc.innerHTML = `
-                    <span onclick="openFolder(null)"><i class="fas fa-home"></i> Home</span> 
-                    <i class="fas fa-chevron-right" style="font-size:0.8em; color:#ccc;"></i> 
-                    <span class="active-folder">${folderObj.name}</span>
+                alert('Gagal mendownload URL tersebut.');
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan jaringan.');
+        }
+        
+        progressContainer.style.display = 'none';
+        progressBar.className = 'progress-bar';
+    }
+
+    async function uploadFiles(fileList) {
+        if (!fileList.length) return;
+        
+        const formData = new FormData();
+        if (CURRENT_FOLDER) formData.append('folderId', CURRENT_FOLDER);
+        formData.append('optimize', document.getElementById('compressCheckbox').checked);
+        
+        let validFileCount = 0;
+        for (let file of fileList) {
+            if (file.type.match(/image|video/)) {
+                formData.append('images', file);
+                validFileCount++;
+            }
+        }
+        
+        if (validFileCount === 0) return alert('Hanya file gambar atau video yang diizinkan!');
+        
+        const progressContainer = document.getElementById('progressCont');
+        const progressBar = document.getElementById('progressBar');
+        
+        progressContainer.style.display = 'block';
+        progressBar.className = 'progress-bar';
+        progressBar.style.width = '0%';
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload-bulk');
+        xhr.setRequestHeader('x-api-key', API_KEY);
+        
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+            }
+        };
+        
+        xhr.onload = () => {
+            progressContainer.style.display = 'none';
+            if (xhr.status === 200) {
+                refreshData();
+            } else {
+                alert('Proses upload gagal.');
+            }
+        };
+        
+        xhr.onerror = () => {
+            progressContainer.style.display = 'none';
+            alert('Terjadi error saat upload.');
+        };
+        
+        xhr.send(formData);
+    }
+
+    // --- Drag & Drop Binds ---
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fi'); // ID yang benar dari HTML atas
+
+    dropZone.onclick = () => document.getElementById('fileInput').click();
+    
+    dropZone.ondragover = (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--primary');
+    };
+    
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border');
+        uploadFiles(e.dataTransfer.files);
+    };
+    
+    document.getElementById('fileInput').onchange = (e) => uploadFiles(e.target.files);
+
+
+    // ==========================================
+    // DATA LOADING & RENDERING
+    // ==========================================
+    function refreshData() {
+        CURRENT_PAGE = 1;
+        document.getElementById('assetGrid').innerHTML = '';
+        fetchServerData();
+    }
+
+    function loadMoreData() {
+        CURRENT_PAGE++;
+        fetchServerData();
+    }
+
+    async function fetchServerData() {
+        try {
+            const searchTerm = encodeURIComponent(document.getElementById('searchInput').value);
+            const url = `/api/assets?page=${CURRENT_PAGE}&folderId=${CURRENT_FOLDER || ''}&search=${searchTerm}`;
+            
+            const response = await fetch(url, { headers: { 'x-api-key': API_KEY } });
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            const grid = document.getElementById('assetGrid');
+            
+            // Render Breadcrumb (Hanya jika ini halaman pertama)
+            if (CURRENT_PAGE === 1) {
+                const breadcrumbEl = document.getElementById('breadcrumb');
+                if (data.currentFolder) {
+                    breadcrumbEl.innerHTML = `<span onclick="CURRENT_FOLDER=null; refreshData()" style="cursor:pointer; color:var(--primary)">Home</span> > ${data.currentFolder.name}`;
+                } else {
+                    breadcrumbEl.innerHTML = 'Home';
+                }
+                
+                // Render Folders
+                if (data.folders) {
+                    const folderHtml = data.folders.map(folder => `
+                        <div class="card folder-card" onclick="CURRENT_FOLDER=${folder.id}; refreshData()">
+                            <div class="folder-del" onclick="event.stopPropagation(); if(confirm('Hapus folder?')) deleteFolderAPI(${folder.id})">
+                                <i class="fas fa-trash"></i>
+                            </div>
+                            <i class="fas fa-folder folder-icon"></i>
+                            <div class="file-name">${folder.name}</div>
+                        </div>
+                    `).join('');
+                    grid.insertAdjacentHTML('beforeend', folderHtml);
+                }
+            }
+            
+            // Render Assets
+            if (data.assets) {
+                const assetHtml = data.assets.map(asset => {
+                    const mime = asset.mimeType || 'image/jpeg';
+                    const isVideo = mime.startsWith('video');
+                    const mediaTag = isVideo 
+                        ? `<video src="${asset.url}"></video>` 
+                        : `<img src="${asset.url}" loading="lazy">`;
+                        
+                    return `
+                        <div class="card asset-card" data-url="${asset.url}" data-mime="${mime}" onclick="handleCardClick(${asset.id}, this)">
+                            <div class="select-check"><i class="fas fa-check"></i></div>
+                            <div class="media-wrap">
+                                ${mediaTag}
+                                <div class="overlay">
+                                    <div class="icon-btn" onclick="renameAPI(${asset.id}, '${asset.fileName}', event)" title="Rename"><i class="fas fa-pen"></i></div>
+                                    <div class="icon-btn" onclick="openCopyModal('${asset.url}', '${asset.shortId}', event)" title="Copy URL"><i class="fas fa-link"></i></div>
+                                    <div class="icon-btn" onclick="deleteSingleAPI(${asset.id}, event)" title="Delete"><i class="fas fa-trash"></i></div>
+                                </div>
+                            </div>
+                            <div class="info-wrap">
+                                <div class="file-name" title="${asset.fileName}">${asset.fileName}</div>
+                                <div class="file-meta">
+                                    <span>${formatSize(asset.size)}</span>
+                                    ${data.isAdmin ? `<span>${asset.ownerName}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                grid.insertAdjacentHTML('beforeend', assetHtml);
+            }
+            
+            // UI Folder Kosong
+            if (CURRENT_PAGE === 1 && (!data.folders || data.folders.length === 0) && (!data.assets || data.assets.length === 0)) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                        <i class="fas fa-box-open" style="font-size: 4em; margin-bottom: 15px; opacity: 0.5;"></i><br>
+                        <span style="font-size: 1.2em; font-weight: 500;">Folder Kosong</span><br>
+                        <small>Drag & Drop file ke layar untuk mengunggah.</small>
+                    </div>
                 `;
             }
-        }
-
-        window.openFolder = (id) => { CURRENT_FOLDER = id; refreshData(); }
-
-        window.createFolder = async () => {
-            const name = prompt("Nama Folder Baru:");
-            if(!name) return;
-            try {
-                await fetch('/api/folders', {
-                    method: 'POST',
-                    headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, parentId: CURRENT_FOLDER })
-                });
-                refreshData();
-            } catch(e) { alert('Gagal buat folder'); }
-        }
-
-        window.deleteFolder = async (id, e) => {
-            e.stopPropagation();
-            if(!confirm("Hapus folder? Isi file akan dipindah ke Home.")) return;
-            try {
-                await fetch(`/api/folders/${id}`, { method: 'DELETE', headers: { 'x-api-key': API_KEY } });
-                refreshData();
-            } catch(e) { alert('Gagal hapus'); }
-        }
-
-        // --- UPLOAD LOGIC & PASTE SUPPORT ---
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-
-        dropZone.onclick = () => fileInput.click();
-        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'green'; };
-        dropZone.ondragleave = () => dropZone.style.borderColor = '#ccc';
-        dropZone.ondrop = (e) => { e.preventDefault(); dropZone.style.borderColor = '#ccc'; handleUpload(e.dataTransfer.files); };
-        fileInput.onchange = (e) => handleUpload(e.target.files);
-
-        window.addEventListener('paste', (e) => {
-            if (!API_KEY || document.getElementById('dashboardSection').classList.contains('hidden')) return;
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            const files = [];
-            for (let item of items) {
-                if (item.kind === 'file') {
-                    const file = item.getAsFile();
-                    if (file) files.push(file);
-                }
-            }
-            if (files.length > 0) handleUpload(files);
-        });
-
-        async function handleUpload(files) {
-            if(!files.length) return;
-
-            const validFiles = [];
-            let rejectedCount = 0;
-            for(let i=0; i<files.length; i++) {
-                const file = files[i];
-                if(file.type.startsWith('image/') || file.type.startsWith('video/')) {
-                    validFiles.push(file);
-                } else { rejectedCount++; }
-            }
-
-            if(rejectedCount > 0) alert(`⚠️ Ada ${rejectedCount} file ditolak karena bukan Gambar/Video!`);
-            if(validFiles.length === 0) return;
-
-            const status = document.getElementById('bulkStatus');
-            status.innerText = `Uploading ${validFiles.length} files...`;
             
-            // CHECKBOX STATE
-            const shouldOptimize = document.getElementById('compressToggle').checked;
-
-            const formData = new FormData();
-            if(CURRENT_FOLDER) formData.append('folderId', CURRENT_FOLDER);
-            formData.append('optimize', shouldOptimize); // KIRIM PILIHAN USER
-
-            for(let f of validFiles) formData.append('images', f);
-
-            try {
-                const res = await fetch('/upload-bulk', {
-                    method: 'POST',
-                    headers: { 'x-api-key': API_KEY },
-                    body: formData
-                });
-                const data = await res.json();
-                status.innerText = "";
-                if(res.ok) refreshData();
-                else alert('Server Error: ' + (data.error || 'Gagal upload'));
-            } catch(e) { alert('Upload failed: Koneksi error'); status.innerText = ""; }
+            // Update Tombol Load More
+            document.getElementById('loadMoreBtn').classList.toggle('hidden', !data.pagination.hasMore);
+            
+        } catch (error) {
+            console.error("Fetch Data Error:", error);
+            if (CURRENT_PAGE === 1) {
+                document.getElementById('assetGrid').innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--danger);">Gagal memuat data dari server.</div>`;
+            }
         }
+    }
 
-        window.deleteAsset = async (id) => {
-            if(!confirm("Hapus file?")) return;
+    // ==========================================
+    // API CALLS (DELETE, RENAME, NEW FOLDER)
+    // ==========================================
+    window.deleteFolderAPI = async (id) => {
+        await fetch(`/api/folders/${id}`, { method: 'DELETE', headers: { 'x-api-key': API_KEY } });
+        refreshData();
+    }
+
+    window.deleteSingleAPI = async (id, event) => {
+        event.stopPropagation();
+        if (confirm('Hapus file ini?')) {
             await fetch(`/api/assets/${id}`, { method: 'DELETE', headers: { 'x-api-key': API_KEY } });
             refreshData();
         }
-        window.renameAsset = async (id, oldName) => {
-            const newName = prompt("Rename:", oldName);
-            if(newName && newName !== oldName) {
-                await fetch(`/api/assets/${id}`, {
-                    method: 'PUT',
-                    headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ newName })
-                });
-                refreshData();
+    }
+
+    window.renameAPI = async (id, currentName, event) => {
+        event.stopPropagation();
+        const newName = prompt('Ubah nama file:', currentName);
+        if (newName && newName !== currentName) {
+            await fetch(`/api/assets/${id}`, {
+                method: 'PUT',
+                headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newName: newName })
+            });
+            refreshData();
+        }
+    }
+
+    window.createFolder = async () => {
+        const folderName = prompt('Nama Folder Baru:');
+        if (folderName) {
+            await fetch('/api/folders', {
+                method: 'POST',
+                headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: folderName, parentId: CURRENT_FOLDER })
+            });
+            refreshData();
+        }
+    }
+
+    // ==========================================
+    // INITIALIZATION & AUTH
+    // ==========================================
+    document.getElementById('searchInput').addEventListener('keyup', () => {
+        clearTimeout(SEARCH_TIMER);
+        SEARCH_TIMER = setTimeout(refreshData, 500); // Delay 500ms biar ga nge-spam API
+    });
+
+    window.logout = () => {
+        localStorage.clear();
+        location.reload();
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = document.getElementById('usernameInput').value;
+        const pass = document.getElementById('passwordInput').value;
+        
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                localStorage.setItem('mk', data.apiKey);
+                localStorage.setItem('mu', data.username);
+                API_KEY = data.apiKey;
+                USERNAME = data.username;
+                initializeDashboard();
+            } else {
+                alert(data.error);
             }
+        } catch (error) {
+            alert('Terjadi kesalahan koneksi ke server.');
         }
+    });
 
-        window.copyUrl = (url) => {
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(url).then(() => alert('URL Tersalin!')).catch(() => fallbackCopy(url));
-            } else { fallbackCopy(url); }
+    function initializeDashboard() {
+        if (API_KEY) {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('dash').classList.remove('hidden');
+            document.getElementById('welcomeUser').innerText = USERNAME;
+            refreshData();
         }
+    }
 
-        function fallbackCopy(text) {
-            var textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
-            document.body.appendChild(textArea);
-            textArea.focus(); textArea.select();
-            try { document.execCommand('copy'); alert('URL Tersalin!'); } catch (err) { alert('Gagal copy.'); }
-            document.body.removeChild(textArea);
-        }
+    // Start App
+    initializeDashboard();
 
-        checkLogin();
-    </script>
+</script>
 </body>
 </html>
